@@ -1,6 +1,6 @@
 from django.db import models
-from product.models import Product
-from user.models import User
+from apps.product.models import Product
+from apps.user.models import Account
 
 
 class Order(models.Model):
@@ -11,7 +11,7 @@ class Order(models.Model):
         (4, 'Canceled'),
     )
     product = models.ForeignKey(Product, models.SET('Product deleted'), related_name='order')
-    user = models.ForeignKey(User, models.SET('User deleted'), related_name='order')
+    user = models.ForeignKey(Account, models.SET('User deleted'), related_name='order')
     count = models.PositiveIntegerField(default=1)
     status = models.PositiveIntegerField(choices=STATUS, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -19,7 +19,7 @@ class Order(models.Model):
 
 class Rate(models.Model):
     rate = models.FloatField()
-    user = models.ForeignKey(User, models.SET("User deleted"), related_name='rate')
+    user = models.ForeignKey(Account, models.SET("User deleted"), related_name='rate')
     product = models.ForeignKey(Product, models.SET('Product deleted'), related_name='rate')
 
 

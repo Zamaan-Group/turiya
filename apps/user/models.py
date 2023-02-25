@@ -1,11 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 
-phone_regex = RegexValidator(
-    regex=r"^998[378]{2}|9[01345789]\d{7}$",
-    message="Phone number must be entered in the format: '998 [XX] [XXX XX XX]'. Up to 12 digits allowed."
-)
+
 class UserManager(BaseUserManager):
     def create_user(self, phone, password=None, **kwargs):
         if not phone:
@@ -20,14 +17,15 @@ class UserManager(BaseUserManager):
             raise TypeError('Password did not come')
         user = self.create_user(phone, password, **kwargs)
         user.is_superuser = True
+        user.is_admin = True
         user.is_staff = True
         user.save(using=self._db)
         return user
 
 
-class User(AbstractBaseUser):
+class Account(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255, unique=True)
-    phone = models.IntegerField(validators=[phone_regex], unique=True)
+    phone = models.CharField(max_length=14, unique=True, db_index=True)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
@@ -36,6 +34,19 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'phone'
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.username
+        return self.phone
+
+
+class VerifyPhone(models.Model):
+    class Meta:
+        verbose_name = "Telefon raqamni tasdiqlash"
+        verbose_name_plural = "Telefon raqam tasdiqlash"
+
+    phone = models.CharField(max_length=15, verbose_name="Phone number")
+    code = models.CharField(max_length=10, verbose_name="Code")
+
+    def __str__(self):
+        return self.phone
